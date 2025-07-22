@@ -1,22 +1,25 @@
 ﻿
 
+using Shared;
+
+
+
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Spectre.Console;
-using System.ComponentModel;
-using System.Xml;
 
 IChatCompletionService _chatCompletionService;
 ChatHistory _chatHistory;
 OpenAIPromptExecutionSettings _executionSettings;
 
 InitializeKernels();
+
+
+
 ShowWelcomeMessage();
 
 await RunChatLoopAsync();
-
-
 
 async Task<ChatMessageContentItemCollection> CreateUserContentAsync(string additionalText, string imagePathOrUrl)
 {
@@ -76,20 +79,9 @@ string InferMimeType(string filePath)
 
 void InitializeKernels()
 {
-    string? openAIKey = Environment.GetEnvironmentVariable("SkCourseOpenAIKey");
-    string? azureRegion = Environment.GetEnvironmentVariable("SkCourseAzureRegion");
-    string? azureKey = Environment.GetEnvironmentVariable("SkCourseAzureKey");
+    Kernel openAIKernel = KernelFactory.CreateKernel(TypeKernel.OpenAI);
+    Kernel azureKernel = KernelFactory.CreateKernel(TypeKernel.AzureOpenAI);
 
-
-    Kernel openAIKernel = Kernel.CreateBuilder()
-                                    .AddOpenAIChatCompletion("gpt-4o-mini-2024-07-18", $"{openAIKey}")
-                                    .Build();
-
-    Kernel azureKernel = Kernel.CreateBuilder()
-                                    .AddAzureOpenAIChatCompletion(deploymentName: "gpt-4o-mini",
-                                                                  endpoint: $"{azureRegion}",
-                                                                  apiKey: $"{azureKey}")
-                                    .Build();
     _executionSettings = new OpenAIPromptExecutionSettings()
     {
         MaxTokens = 4000,
@@ -107,9 +99,6 @@ void ShowWelcomeMessage()
     AnsiConsole.MarkupLine(" - Type [blue]img[/] to attach an image (local path o URL)");
     AnsiConsole.MarkupLine(" - Type [red]exit[/] to terminate");
 }
-
-
-
 
 async Task RunChatLoopAsync()
 {
