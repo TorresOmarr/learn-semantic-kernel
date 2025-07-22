@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36301.6
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatHistoryApp", "ChatHistoryApp\ChatHistoryApp.csproj", "{EB2FA56E-DB8C-4BA3-9219-8C5827923BBB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonPackages", "CommonPackages\CommonPackages.csproj", "{BF292288-2ABF-47B3-B42F-FF310A0F5E5D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EB2FA56E-DB8C-4BA3-9219-8C5827923BBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB2FA56E-DB8C-4BA3-9219-8C5827923BBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB2FA56E-DB8C-4BA3-9219-8C5827923BBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB2FA56E-DB8C-4BA3-9219-8C5827923BBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF292288-2ABF-47B3-B42F-FF310A0F5E5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF292288-2ABF-47B3-B42F-FF310A0F5E5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF292288-2ABF-47B3-B42F-FF310A0F5E5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF292288-2ABF-47B3-B42F-FF310A0F5E5D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {19F7A790-928E-4799-BAE9-B07753EC01EE}
+	EndGlobalSection
+EndGlobal
