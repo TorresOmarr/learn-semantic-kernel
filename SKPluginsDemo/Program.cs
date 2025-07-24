@@ -10,6 +10,8 @@ Kernel openAIKernel = KernelFactory.CreateKernel(TypeKernel.OpenAI);
 Kernel azureKernel = KernelFactory.CreateKernel(TypeKernel.AzureOpenAI);
 
 
+
+
 #region Kernel Functions
 KernelFunction timeFunction = KernelFunctionFactory.CreateFromMethod(() => DateTime.Now.ToShortTimeString(),
                                                 functionName: "get_current_time",
@@ -63,37 +65,72 @@ openAIKernel.Plugins.AddFromType<SystemInfoPlugin>();
 
 var chatCompletionService = openAIKernel.GetRequiredService<IChatCompletionService>();
 
+KernelFunction memoryFunction = openAIKernel.Plugins.GetFunction("SystemInfoPlugin", "get_top_memory_processes");
 OpenAIPromptExecutionSettings settings = new OpenAIPromptExecutionSettings
 {
-    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
-    Temperature = 0.7f,
+    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: false),
+    Temperature = 0.5f,
 };
 
 
 ChatHistory _chatHistory = [];
 
 string? input = null;
-Console.WriteLine(Environment.CurrentDirectory);
 
+_chatHistory.AddUserMessage("What time is it?");
 while (true)
 {
-
-    Console.Write("User: ");
-    input = Console.ReadLine();
-    if(string.IsNullOrWhiteSpace(input))
+    ChatMessageContent result = await chatCompletionService.GetChatMessageContentAsync(_chatHistory, settings, openAIKernel);
+    if (result.Content is not null)
     {
-        Console.WriteLine("Exiting...");
+        Console.WriteLine($"Assistant: {result.Content}");
+        break;
+    }
+    _chatHistory.Add(result);
+
+    IEnumerable<FunctionCallContent> functionCalls = FunctionCallContent.GetFunctionCalls(result);
+
+    if (!functionCalls.Any())
+    {
         break;
     }
 
-    _chatHistory.AddUserMessage(input);
+    foreach (FunctionCallContent functionCall in functionCalls)
+    {
+        try
+        {
+            FunctionResultContent resultContent = await functionCall.InvokeAsync(openAIKernel);
+            _chatHistory.Add(resultContent.ToChatMessage());
+        }
+        catch (Exception ex)
+        {
+            _chatHistory.Add(new FunctionResultContent(functionCall, ex).ToChatMessage());
+            throw;
+        }
+       
 
-    var chatResult = await chatCompletionService.GetChatMessageContentAsync(_chatHistory, settings, openAIKernel);
-    _chatHistory.AddAssistantMessage(chatResult.ToString());
-
-    Console.Write($"Assistant: {chatResult}\n");
-
+    }
 }
+
+//while (true)
+//{
+
+//    Console.Write("User: ");
+//    input = Console.ReadLine();
+//    if(string.IsNullOrWhiteSpace(input))
+//    {
+//        Console.WriteLine("Exiting...");
+//        break;
+//    }
+
+//    _chatHistory.AddUserMessage(input);
+
+//    var chatResult = await chatCompletionService.GetChatMessageContentAsync(_chatHistory, settings, openAIKernel);
+//    _chatHistory.AddAssistantMessage(chatResult.ToString());
+
+//    Console.Write($"Assistant: {chatResult}\n");
+
+//}
 
 
 
