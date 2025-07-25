@@ -2,24 +2,23 @@
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.Plugins.Core;
+using Microsoft.SemanticKernel.Plugins.OpenApi;
 using Shared;
+using SharpYaml;
 using SKPluginsDemo.Plugins;
 
 
 Kernel openAIKernel = KernelFactory.CreateKernel(TypeKernel.OpenAI);
 Kernel azureKernel = KernelFactory.CreateKernel(TypeKernel.AzureOpenAI);
 
-
-
-
 #region Kernel Functions
-KernelFunction timeFunction = KernelFunctionFactory.CreateFromMethod(() => DateTime.Now.ToShortTimeString(),
-                                                functionName: "get_current_time",
-                                                description: "Gets the current time");
+//KernelFunction timeFunction = KernelFunctionFactory.CreateFromMethod(() => DateTime.Now.ToShortTimeString(),
+//                                                functionName: "get_current_time",
+//                                                description: "Gets the current time");
 
-KernelFunction poemFunction = KernelFunctionFactory.CreateFromPrompt("write a poem about Semantic Kernel",
-                                                    functionName: "write_poem",
-                                                    description: "write a poem about Semantic Kernel");
+//KernelFunction poemFunction = KernelFunctionFactory.CreateFromPrompt("write a poem about Semantic Kernel",
+//                                                    functionName: "write_poem",
+//                                                    description: "write a poem about Semantic Kernel");
 //var currentTime = await openAIKernel.InvokeAsync(poemFunction);
 //Console.WriteLine(currentTime);
 
@@ -27,7 +26,7 @@ KernelFunction poemFunction = KernelFunctionFactory.CreateFromPrompt("write a po
 
 
 #region Creating Native Functions
-KernelPlugin systemInfoPlugin = KernelPluginFactory.CreateFromType(typeof(SystemInfoPlugin));
+//KernelPlugin systemInfoPlugin = KernelPluginFactory.CreateFromType(typeof(SystemInfoPlugin));
 
 //var systemInfo = await openAIKernel.InvokeAsync(systemInfoPlugin.Where(x => x.Name == "get_memory_ram").First());
 
@@ -44,11 +43,11 @@ KernelPlugin systemInfoPlugin = KernelPluginFactory.CreateFromType(typeof(System
 
 
 #region using Built-in Plugins
-KernelPlugin conversationPlugin = KernelPluginFactory.CreateFromType<ConversationSummaryPlugin>();
-var filePlugin = KernelPluginFactory.CreateFromType<FileIOPlugin>();
-var httpPlugin = KernelPluginFactory.CreateFromType<HttpPlugin>();
-var timePlugin = KernelPluginFactory.CreateFromType<TimePlugin>();
-var textPlugin = KernelPluginFactory.CreateFromType<TextPlugin>();
+//KernelPlugin conversationPlugin = KernelPluginFactory.CreateFromType<ConversationSummaryPlugin>();
+//var filePlugin = KernelPluginFactory.CreateFromType<FileIOPlugin>();
+//var httpPlugin = KernelPluginFactory.CreateFromType<HttpPlugin>();
+//var timePlugin = KernelPluginFactory.CreateFromType<TimePlugin>();
+//var textPlugin = KernelPluginFactory.CreateFromType<TextPlugin>();
 
 //var summary = await openAIKernel.InvokeAsync(conversationPlugin.Where(x => x.Name == "SummarizeConversation").First(), new KernelArguments()
 //{
@@ -59,17 +58,55 @@ var textPlugin = KernelPluginFactory.CreateFromType<TextPlugin>();
 #endregion
 
 
-openAIKernel.Plugins.AddFromFunctions("MyPlugins", [timeFunction, poemFunction]);
+//openAIKernel.Plugins.AddFromFunctions("MyPlugins", [timeFunction, poemFunction]);
 openAIKernel.Plugins.AddFromType<SystemInfoPlugin>();
 
+
+//Mode 1
+//await openAIKernel.ImportPluginFromOpenApiAsync(pluginName: "fakeRest",
+//    uri: new Uri("https://fakerestapi.azurewebsites.net/swagger/v1/swagger.json"),
+//    executionParameters: new OpenApiFunctionExecutionParameters()
+//    {
+//        EnablePayloadNamespacing = true,
+//    });
+
+//Mode 2
+//KernelPlugin apiPlugin = await OpenApiKernelPluginFactory.CreateFromOpenApiAsync(
+//    pluginName: "fakeRest",
+//    uri: new Uri("https://fakerestapi.azurewebsites.net/swagger/v1/swagger.json"),
+//    executionParameters: new OpenApiFunctionExecutionParameters()
+//    {
+//        EnablePayloadNamespacing = true,
+//    }
+//);
+//openAIKernel.Plugins.Add(apiPlugin);
+
+
+//Mode 3 by specification
+using HttpClient client = new HttpClient();
+string url = "https://fakerestapi.azurewebsites.net/swagger/v1/swagger.json";
+var stream = await client.GetStreamAsync(url);
+OpenApiDocumentParser parser = new();
+
+RestApiSpecification specification = await parser.ParseAsync(stream);
+
+var booksOperations = specification.Operations.Where(o => o.Path == "/api/v1/Books");
+
+RestApiOperation operation = booksOperations.Single(o => o.Path == "/api/v1/Books" && o.Method == HttpMethod.Get);
+
+RestApiParameter idPathParameter = operation.Parameters.Single(p => p.Location == RestApiParameterLocation.Path && p.Name == "id");
+
+idPathParameter.ArgumentName = "bookId";
+
+openAIKernel.ImportPluginFromOpenApi(pluginName: "books", specification: specification);
 
 var chatCompletionService = openAIKernel.GetRequiredService<IChatCompletionService>();
 
 KernelFunction memoryFunction = openAIKernel.Plugins.GetFunction("SystemInfoPlugin", "get_top_memory_processes");
 OpenAIPromptExecutionSettings settings = new OpenAIPromptExecutionSettings
 {
-    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: false),
-    Temperature = 0.5f,
+    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true),
+    Temperature = 0.5f  ,
 };
 
 
@@ -77,60 +114,60 @@ ChatHistory _chatHistory = [];
 
 string? input = null;
 
-_chatHistory.AddUserMessage("What time is it?");
-while (true)
-{
-    ChatMessageContent result = await chatCompletionService.GetChatMessageContentAsync(_chatHistory, settings, openAIKernel);
-    if (result.Content is not null)
-    {
-        Console.WriteLine($"Assistant: {result.Content}");
-        break;
-    }
-    _chatHistory.Add(result);
-
-    IEnumerable<FunctionCallContent> functionCalls = FunctionCallContent.GetFunctionCalls(result);
-
-    if (!functionCalls.Any())
-    {
-        break;
-    }
-
-    foreach (FunctionCallContent functionCall in functionCalls)
-    {
-        try
-        {
-            FunctionResultContent resultContent = await functionCall.InvokeAsync(openAIKernel);
-            _chatHistory.Add(resultContent.ToChatMessage());
-        }
-        catch (Exception ex)
-        {
-            _chatHistory.Add(new FunctionResultContent(functionCall, ex).ToChatMessage());
-            throw;
-        }
-       
-
-    }
-}
-
+//_chatHistory.AddUserMessage("What time is it?");
 //while (true)
 //{
-
-//    Console.Write("User: ");
-//    input = Console.ReadLine();
-//    if(string.IsNullOrWhiteSpace(input))
+//    ChatMessageContent result = await chatCompletionService.GetChatMessageContentAsync(_chatHistory, settings, openAIKernel);
+//    if (result.Content is not null)
 //    {
-//        Console.WriteLine("Exiting...");
+//        Console.WriteLine($"Assistant: {result.Content}");
+//        break;
+//    }
+//    _chatHistory.Add(result);
+
+//    IEnumerable<FunctionCallContent> functionCalls = FunctionCallContent.GetFunctionCalls(result);
+
+//    if (!functionCalls.Any())
+//    {
 //        break;
 //    }
 
-//    _chatHistory.AddUserMessage(input);
+//    foreach (FunctionCallContent functionCall in functionCalls)
+//    {
+//        try
+//        {
+//            FunctionResultContent resultContent = await functionCall.InvokeAsync(openAIKernel);
+//            _chatHistory.Add(resultContent.ToChatMessage());
+//        }
+//        catch (Exception ex)
+//        {
+//            _chatHistory.Add(new FunctionResultContent(functionCall, ex).ToChatMessage());
+//            throw;
+//        }
 
-//    var chatResult = await chatCompletionService.GetChatMessageContentAsync(_chatHistory, settings, openAIKernel);
-//    _chatHistory.AddAssistantMessage(chatResult.ToString());
 
-//    Console.Write($"Assistant: {chatResult}\n");
-
+//    }
 //}
+
+while (true)
+{
+
+    Console.Write("User: ");
+    input = Console.ReadLine();
+    if (string.IsNullOrWhiteSpace(input))
+    {
+        Console.WriteLine("Exiting...");
+        break;
+    }
+
+    _chatHistory.AddUserMessage(input);
+
+    var chatResult = await chatCompletionService.GetChatMessageContentAsync(_chatHistory, settings, openAIKernel);
+    _chatHistory.AddAssistantMessage(chatResult.ToString());
+
+    Console.Write($"Assistant: {chatResult}\n");
+
+}
 
 
 
