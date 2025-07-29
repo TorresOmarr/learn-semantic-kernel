@@ -1,7 +1,6 @@
 ﻿using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using Microsoft.SemanticKernel.Plugins.Core;
 using Microsoft.SemanticKernel.Plugins.OpenApi;
 using Shared;
 using SharpYaml;
@@ -63,12 +62,12 @@ openAIKernel.Plugins.AddFromType<SystemInfoPlugin>();
 
 
 //Mode 1
-//await openAIKernel.ImportPluginFromOpenApiAsync(pluginName: "fakeRest",
-//    uri: new Uri("https://fakerestapi.azurewebsites.net/swagger/v1/swagger.json"),
-//    executionParameters: new OpenApiFunctionExecutionParameters()
-//    {
-//        EnablePayloadNamespacing = true,
-//    });
+await openAIKernel.ImportPluginFromOpenApiAsync(pluginName: "fakeRest",
+    uri: new Uri("https://fakerestapi.azurewebsites.net/swagger/v1/swagger.json"),
+    executionParameters: new OpenApiFunctionExecutionParameters()
+    {
+        EnablePayloadNamespacing = true,
+    });
 
 //Mode 2
 //KernelPlugin apiPlugin = await OpenApiKernelPluginFactory.CreateFromOpenApiAsync(
@@ -83,22 +82,22 @@ openAIKernel.Plugins.AddFromType<SystemInfoPlugin>();
 
 
 //Mode 3 by specification
-using HttpClient client = new HttpClient();
-string url = "https://fakerestapi.azurewebsites.net/swagger/v1/swagger.json";
-var stream = await client.GetStreamAsync(url);
-OpenApiDocumentParser parser = new();
+//using HttpClient client = new HttpClient();
+//string url = "https://fakerestapi.azurewebsites.net/swagger/v1/swagger.json";
+//var stream = await client.GetStreamAsync(url);
+//OpenApiDocumentParser parser = new();
 
-RestApiSpecification specification = await parser.ParseAsync(stream);
+//RestApiSpecification specification = await parser.ParseAsync(stream);
 
-var booksOperations = specification.Operations.Where(o => o.Path == "/api/v1/Books");
+//var booksOperations = specification.Operations.Where(o => o.Path == "/api/v1/Books");
 
-RestApiOperation operation = booksOperations.Single(o => o.Path == "/api/v1/Books" && o.Method == HttpMethod.Get);
+//RestApiOperation operation = booksOperations.Single(o => o.Path == "/api/v1/Books" && o.Method == HttpMethod.Get);
 
-RestApiParameter idPathParameter = operation.Parameters.Single(p => p.Location == RestApiParameterLocation.Path && p.Name == "id");
+//RestApiParameter idPathParameter = operation.Parameters.Single(p => p.Location == RestApiParameterLocation.Path && p.Name == "id");
 
-idPathParameter.ArgumentName = "bookId";
+//idPathParameter.ArgumentName = "bookId";
 
-openAIKernel.ImportPluginFromOpenApi(pluginName: "books", specification: specification);
+//openAIKernel.ImportPluginFromOpenApi(pluginName: "books", specification: specification);
 
 var chatCompletionService = openAIKernel.GetRequiredService<IChatCompletionService>();
 
