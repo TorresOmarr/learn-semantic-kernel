@@ -21,12 +21,12 @@ namespace Shared.Plugins
             }
 
 
-            if (!_ffmpegUtils.TryExtractAudio(inputPath))
+            if (!await _ffmpegUtils.TryExtractAudioAsync(inputPath))
             {
                 return "Failed to extract audio";
             }
 
-            return $"Audio extracted successfully at {inputPath.Replace(".mp4", "_temp.mp3")}";
+            return $"Audio extracted successfully at {inputPath.Replace(".mp4", ".mp3")}";
 
         }
 
