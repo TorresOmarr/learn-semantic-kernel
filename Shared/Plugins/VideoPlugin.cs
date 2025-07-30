@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.SemanticKernel;
 using Shared.Services;
+using System.ComponentModel;
 
 namespace Shared.Plugins
 {
@@ -15,7 +16,7 @@ namespace Shared.Plugins
         [KernelFunction]
         public async Task<string> ExtractAudioFromVideo(string inputPath)
         {
-            if(!File.Exists(inputPath))
+            if (!File.Exists(inputPath))
             {
                 return "The file does not exist.";
             }
@@ -30,5 +31,19 @@ namespace Shared.Plugins
 
         }
 
+        [KernelFunction]
+        [Description("Cut the original video file from a start time to an end time")]
+        public async Task<string> CutVideo(string inputPath, string newVideoName, TimeSpan startTime, TimeSpan endTime, Kernel kernel, bool burnSubtitles = false)
+        {
+            if (!File.Exists(inputPath))
+            {
+                return "The file does not exist.";
+            }
+            if (startTime >= endTime)
+            {
+                return "Start time must be less than end time.";
+            }
+            return await _ffmpegUtils.CutVideo(inputPath, newVideoName, startTime, endTime, kernel);
+        }
     }
 }

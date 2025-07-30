@@ -29,6 +29,8 @@ namespace Shared
 
                 builder.Services.AddSingleton<FFMPegUtils>();
                 builder.Plugins.AddFromType<VideoPlugin>();
+                builder.Services.AddSingleton<WhisperTranscriptionService>();
+                builder.Plugins.AddFromType<SpeechToTextPlugin>();
 
             }
             else if (type == TypeKernel.AzureOpenAI)
