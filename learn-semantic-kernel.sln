@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KernelMediaTool", "KernelMe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromptsDemo", "PromptsDemo\PromptsDemo.csproj", "{4DF9008E-3FB4-429D-A036-F6C64B349D84}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkVectorStoreTextSearchDemo", "SkVectorStoreTextSearchDemo\SkVectorStoreTextSearchDemo.csproj", "{1C7708C0-FD32-40A4-AD26-65350222F975}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{4DF9008E-3FB4-429D-A036-F6C64B349D84}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4DF9008E-3FB4-429D-A036-F6C64B349D84}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4DF9008E-3FB4-429D-A036-F6C64B349D84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C7708C0-FD32-40A4-AD26-65350222F975}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C7708C0-FD32-40A4-AD26-65350222F975}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C7708C0-FD32-40A4-AD26-65350222F975}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C7708C0-FD32-40A4-AD26-65350222F975}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

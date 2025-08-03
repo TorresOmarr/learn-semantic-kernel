@@ -31,7 +31,8 @@ namespace Shared
                 builder.Plugins.AddFromType<VideoPlugin>();
                 builder.Services.AddSingleton<WhisperTranscriptionService>();
                 builder.Plugins.AddFromType<SpeechToTextPlugin>();
-
+                builder.Services.AddOpenAIEmbeddingGenerator("text-embedding-ada-002", openAIKey);
+                builder.Services.AddInMemoryVectorStore();
             }
             else if (type == TypeKernel.AzureOpenAI)
             {             
